@@ -15,8 +15,8 @@ var muChart = function(){
   
   var mapping = (iMin, iMax, oMin, oMax) => (value =>(((value - iMin)/(iMax-iMin))*(oMax - oMin)+oMin))
   
-  var xmapping = mapping(xmin,xmax,0,width)
-  var ymapping = mapping(xmin,xmax,0,height)
+  var xmapping = mapping(xmin-3,xmax+3,0,width)
+  var ymapping = mapping(ymin-3,ymax+3,0,height)
   
   var colors = ['#ff7fb8','#ff9c5b','#dbc828','#35c665','#00d8ae','#26c7ff','#c299ff']
   
@@ -25,7 +25,7 @@ var muChart = function(){
   var draw = function(points, color){
     var ctx=chart.getContext("2d");
 		ctx.beginPath();
-		ctx.moveTo(0,iY(0));
+		//ctx.moveTo(0,iY(0));
     points.forEach(pt => {
     	ctx.lineTo(xmapping(pt[0]),iY(ymapping(pt[1])))
     })
@@ -47,19 +47,25 @@ HTML:
 
 JS: *-is below-*
 */
-
-var data = [0,1,2,6,3,2,3,4,5]
 var chart = document.getElementById("chart")
-data = data.map((x,i) => [i,x])
-var data2 = [1,2,1,3,1,3,4,24,5] 
-data2 = data2.map((x,i) => [i,x])
 
-muChart(chart,data,data2)
+var rawdata = new Array(20).fill(0).map((x,i)=>Math.sqrt(i/10)*10)
 
+var data = rawdata.map((x,i) => [i,x])
+var data2 = rawdata.map((x,i) => [i,Math.random()*5+x-2.5])
 
+var ghFilter = function(data,x0,dx,g,h){
+  var out = []
+  var x = x0
+	data.forEach(z => {
+    var est = x + dx
 
-var data = [0,1,2,6,3,2,3,4,5]
-var chart = document.getElementById("chart")
-data = data.map((x,i) => [i,x]) 
-
-muChart(chart,data)
+    var residual = z - est
+    dx = dx    + h * residual
+    x  = est + g * residual     
+    out.push(x)  
+  })
+  return out;
+}
+var data3 = ghFilter(data2.map(x=>x[1]),0,0.1,0.6,0.5).map((x,i)=>[i,x])
+muChart(chart,data,data2,data3)
